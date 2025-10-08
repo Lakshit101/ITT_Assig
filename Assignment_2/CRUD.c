@@ -16,6 +16,19 @@ void create() {
     scanf("%d", &u.id);
     getchar();  
 
+    FILE *fp = fopen(FILE_NAME, "r");
+    if (fp != NULL) {
+        User temp;
+        while (fscanf(fp, "%d,%49[^,],%d\n", &temp.id, temp.name, &temp.age) == 3) {
+            if (temp.id == u.id) {
+                printf("Error: User with ID %d already exists!\n", u.id);
+                fclose(fp);
+                return;
+            }
+        }
+        fclose(fp);
+    }
+
     printf("Enter Name: ");
     fgets(u.name, sizeof(u.name), stdin);
     u.name[strcspn(u.name, "\n")] = 0;  
@@ -23,15 +36,16 @@ void create() {
     printf("Enter Age: ");
     scanf("%d", &u.age);
 
-    FILE *fp = fopen(FILE_NAME, "a");  
+    fp = fopen(FILE_NAME, "a");  
     if (fp == NULL) {
-        printf("Error !\n");
+        printf("Error opening file!\n");
         return;
     }
     fprintf(fp, "%d,%s,%d\n", u.id, u.name, u.age); 
     fclose(fp);
-    printf("User added  !\n");
+    printf("User added successfully!\n");
 }
+
 
  
 void read() {

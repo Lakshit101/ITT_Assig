@@ -1,66 +1,80 @@
 #include <stdio.h>
 #include <string.h>
-#define MAX 1000
+#define MAX_LENGTH 1000
 
-int main()
-{
-   char expression[MAX];
-   int stack[MAX];
-   int number = 0;
-   char op = '+';
-   int top = -1;
+int compute_stack(int stack[], int top) {
+    int result = 0;
+    for (int i = 0; i <= top; i++) {
+        result += stack[i];
+    }
+    return result;
+}
 
-   printf("Enter Expression: \n");
-   fgets(expression, MAX, stdin);
-   int n = strlen(expression);
+int evaluate_expression(char expression[]) {
+    int stack[MAX_LENGTH];
+    int number = 0;
+    char op = '+';
+    int top = -1;
+    int length = strlen(expression);
 
-   for (int i = 0; i < n; i++)
-   {
-      char ch = expression[i];
+    for (int i = 0; i < length; i++) {
+        char ch = expression[i];
 
-      if (ch == ' ')
-         continue;
+        switch (ch) {
+            case ' ':
+                continue;
 
-      if (ch >= '0' && ch <= '9')
-      {
-         number = number * 10 + (ch - '0');
-      }
+            case '+':
+            case '-':
+            case '*':
+            case '/':
+            case '\n':
+            {
+                if (op == '/' && number == 0) {
+                    printf("Error: Division by zero.\n");
+                    return 0;
+                }
 
-      else if (ch == '+' || ch == '-' || ch == '*' || ch == '/' || i == n - 1)
-      {
+                switch (op) {
+                    case '+': stack[++top] = number; break;
+                    case '-': stack[++top] = -number; break;
+                    case '*': stack[top] *= number; break;
+                    case '/': stack[top] /= number; break;
+                }
 
-         if (op == '/' && number == 0)
-         {
-            printf("Error: Division by zero.\n");
-            return 1;
-         }
- 
-         if (op == '+')
-            stack[++top] = number;
-         else if (op == '-')
-            stack[++top] = -number;
-         else if (op == '*')
-            stack[top] *= number;
-         else if (op == '/')
-            stack[top] /= number;
+                op = ch;
+                number = 0;
+                break;
+            }
 
-         op = ch;
-         number = 0;
-      }
+            default:
+                if (ch >= '0' && ch <= '9') {
+                    number = number * 10 + (ch - '0');
+                } else {
+                    printf("Invalid Expression.\n");
+                    return 0;
+                }
+                break;
+        }
+    }
 
-      else
-      {
-         printf("Invalid Expression. \n");
-         return 1;
-      }
-   }
+    return compute_stack(stack, top);
+}
 
-   int result = 0;
-   for (int i = 0; i <= top; i++)
-   {
-      result += stack[i];
-   }
+void process_input() {
+    char expression[MAX_LENGTH];
+    while (1) {
+        printf("Enter Expression: \n");
+        if (fgets(expression, MAX_LENGTH, stdin) == NULL)
+            break;
 
-   printf("Result = %d\n", result);
-   return 0;
+        int result = evaluate_expression(expression);
+        if (result != 0 || (expression[0] >= '0' && expression[0] <= '9'))
+            printf("Result = %d\n", result);
+    }
+}
+
+int main() {
+    process_input();
+    return 0;
 }

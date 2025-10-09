@@ -2,6 +2,7 @@
 #include <string.h>
 #define MAX_LENGTH 1000
 
+
 int compute_stack(int stack[], int top) {
     int result = 0;
     for (int i = 0; i <= top; i++) {

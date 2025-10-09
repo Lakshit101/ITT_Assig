@@ -45,8 +45,6 @@ void create() {
     fclose(fp);
     printf("User added successfully!\n");
 }
-
-
  
 void read() {
     FILE *fp = fopen(FILE_NAME, "r");  
@@ -62,7 +60,6 @@ void read() {
     }
     fclose(fp);
 }
-
  
 void update() {
     int id, found = 0;
@@ -103,7 +100,6 @@ void update() {
     else
         printf("User  %d not found!\n", id);
 }
-
  
 void delete() {
     int id, found = 0;
@@ -137,12 +133,10 @@ void delete() {
     else
         printf("User with ID %d not found!\n", id);
 }
-
  
 int main() {
     int choice;
   
-
     while(1) {
         printf("\n----Choose Option----\n");
         printf("1. Create User\n");

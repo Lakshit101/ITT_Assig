@@ -3,46 +3,89 @@
 
 struct Student
 {
-    int Rollno;
+    int rollNo;
     char Name[50];
-    int subject_1;
-    int subject_2;
-    int subject_3;
-    int Total_marks;
-    float Avg_marks;
+    int subject1;
+    int subject2;
+    int subject3;
+    int totalMarks;
+    float avgMarks;
 };
 
-void Input(struct Student s[], int students)
+void inputMarks(struct Student s[], int numberOfStudents, int i)
 {
-    for (int i = 0; i < students; i++)
+
+    do
+    {
+        printf("Enter marks for subject1 : ");
+        if (scanf("%d", &s[i].subject1) != 1 || s[i].subject1 < 0 || s[i].subject1 > 100)
+        {
+            printf("Invalid marks! Enter a number between 0 and 100 :");
+            while (getchar() != '\n') ;
+        }
+        else
+            break;
+    } while (1);
+
+    do
+    {
+        printf("Enter marks for subject2 : ");
+        if (scanf("%d", &s[i].subject2) != 1 || s[i].subject2 < 0 || s[i].subject2 > 100)
+        {
+            printf("Invalid marks! Enter a number between 0 and 100.\n");
+            while (getchar() != '\n') ;
+        }
+        else
+            break;
+    } while (1);
+
+    do
+    {
+        printf("Enter marks for subject3 : ");
+        if (scanf("%d", &s[i].subject3) != 1 || s[i].subject3 < 0 || s[i].subject3 > 100)
+        {
+            printf("Invalid marks! Enter a number between 0 and 100.\n");
+            while (getchar() != '\n')  ;
+        }
+        else
+            break;
+    } while (1);
+
+    s[i].totalMarks = s[i].subject1 + s[i].subject2 + s[i].subject3;
+    s[i].avgMarks = (s[i].totalMarks) / 3.0;
+}
+
+void basicDetails(struct Student s[], int numberOfStudents)
+{
+    int i = 0;
+    for (i = 0; i < numberOfStudents; i++)
     {
 
         int valid = 0;
         while (!valid)
         {
             printf("Enter Roll number : ");
-            if (scanf("%d", &s[i].Rollno) != 1 || s[i].Rollno <= 0)
+            if (scanf("%d", &s[i].rollNo) != 1 || s[i].rollNo <= 0)
             {
                 printf("Invalid input! Enter a positive integer.\n");
-                while (getchar() != '\n');
-                 
+                while (getchar() != '\n')    ;
             }
 
-           int duplicate = 1;
+            int duplicate = 1;
             for (int j = 0; j < i; j++)
             {
-                if (s[j].Rollno == s[i].Rollno)
+                if (s[j].rollNo == s[i].rollNo)
                 {
                     printf("Roll number already exists! Try again.\n");
                     duplicate = 0;
-               
                 }
             }
-            if(duplicate){
-                valid=1;
+            if (duplicate)
+            {
+                valid = 1;
             }
         }
-        while (getchar() != '\n');
+        while (getchar() != '\n') ;
 
         int validName = 0;
         while (!validName)
@@ -64,73 +107,35 @@ void Input(struct Student s[], int students)
                 }
             }
         }
-
-        do
-        {
-            printf("Enter marks for subject_1 : ");
-            if (scanf("%d", &s[i].subject_1) != 1 || s[i].subject_1 < 0 || s[i].subject_1 > 100)
-            {
-                printf("Invalid marks! Enter a number between 0 and 100.\n");
-                while (getchar() != '\n');
-            }
-            else
-                break;
-        } while (1);
-
-        do
-        {
-            printf("Enter marks for subject_2 : ");
-            if (scanf("%d", &s[i].subject_2) != 1 || s[i].subject_2 < 0 || s[i].subject_2 > 100)
-            {
-                printf("Invalid marks! Enter a number between 0 and 100.\n");
-                while (getchar() != '\n');
-            }
-            else
-                break;
-        } while (1);
-
-        do
-        {
-            printf("Enter marks for subject_3 : ");
-            if (scanf("%d", &s[i].subject_3) != 1 || s[i].subject_3 < 0 || s[i].subject_3 > 100)
-            {
-                printf("Invalid marks! Enter a number between 0 and 100.\n");
-                while (getchar() != '\n');
-            }
-            else
-                break;
-        } while (1);
-
-        s[i].Total_marks = s[i].subject_1 + s[i].subject_2 + s[i].subject_3;
-        s[i].Avg_marks = (s[i].Total_marks) / 3.0;
+        inputMarks(s, numberOfStudents, i);
     }
 }
 
-void Output(struct Student s[], int students)
+void Output(struct Student s[], int numberOfStudents)
 {
-    for (int i = 0; i < students; i++)
+    for (int i = 0; i < numberOfStudents; i++)
     {
-        printf("Rollno : %d\n", s[i].Rollno);
+        printf("rollNo : %d\n", s[i].rollNo);
         printf("Name : %s\n", s[i].Name);
-        printf("Total Marks : %d\n", s[i].Total_marks);
-        printf("Average Marks : %.2f\n", s[i].Avg_marks);
+        printf("Total Marks : %d\n", s[i].totalMarks);
+        printf("Average Marks : %.2f\n", s[i].avgMarks);
 
-        if (s[i].Avg_marks >= 85)
+        if (s[i].avgMarks >= 85)
         {
             printf("Grade : A \n");
             printf("Performance : ***** \n");
         }
-        else if (s[i].Avg_marks >= 70)
+        else if (s[i].avgMarks >= 70)
         {
             printf("Grade : B \n");
             printf("Performance : **** \n");
         }
-        else if (s[i].Avg_marks >= 50)
+        else if (s[i].avgMarks >= 50)
         {
             printf("Grade : C \n");
             printf("Performance : *** \n");
         }
-        else if (s[i].Avg_marks >= 35)
+        else if (s[i].avgMarks >= 35)
         {
             printf("Grade : D \n");
             printf("Performance : ** \n");
@@ -143,26 +148,26 @@ void Output(struct Student s[], int students)
     }
 }
 
-void printRolls(struct Student s[], int students)
+void printRolls(struct Student s[], int numberOfStudents)
 {
-    if (students == 0)
+    if (numberOfStudents == 0)
         return;
-    printRolls(s, students - 1);
-    printf("%d\n", s[students - 1].Rollno);
+    printRolls(s, numberOfStudents - 1);
+    printf("%d\n", s[numberOfStudents - 1].rollNo);
 }
 
 int main()
 {
-    int students = 0;
+    int numberOfStudents = 0;
     printf("Enter number of Students : ");
-    scanf("%d", &students);
+    scanf("%d", &numberOfStudents);
 
-    struct Student s[students];
-    Input(s, students);
+    struct Student s[numberOfStudents];
+    basicDetails(s, numberOfStudents);
     printf("------Report card-------- \n");
-    Output(s, students);
+    Output(s, numberOfStudents);
     printf("List of Roll numbers: \n");
-    printRolls(s, students);
+    printRolls(s, numberOfStudents);
     printf("\n");
 
     return 0;

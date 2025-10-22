@@ -1,15 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
-#include <stdbool.h>
-
-// Check if pixel value is valid (0–255)
-bool isPixelValid(int value)
-{
-    return (value >= 0 && value <= 255);
-}
-
-// Generate random matrix values
+#include<time.h>
 void generateRandomMatrix(int *matrix, int size)
 {
     srand(time(NULL));
@@ -21,8 +12,7 @@ void generateRandomMatrix(int *matrix, int size)
         }
     }
 }
-
-// Print matrix
+ 
 void printMatrix(int *matrix, int size, const char *title)
 {
     printf("\n%s\n", title);
@@ -36,7 +26,6 @@ void printMatrix(int *matrix, int size, const char *title)
     }
 }
 
-//  Transpose matrix
 void transposeMatrix(int *matrix, int size)
 {
     for (int row = 0; row < size; row++)
@@ -49,8 +38,7 @@ void transposeMatrix(int *matrix, int size)
         }
     }
 }
-
-//  Reverse each row
+ 
 void reverseRows(int *matrix, int size)
 {
     for (int row = 0; row < size; row++)
@@ -67,14 +55,12 @@ void reverseRows(int *matrix, int size)
     }
 }
 
-//  Rotate matrix by 90 degree
 void rotateMatrix90(int *matrix, int size)
 {
     transposeMatrix(matrix, size);
     reverseRows(matrix, size);
 }
 
-// Calculate average of neighbors for smoothing filter
 int computeNeighborAverage(int *matrix, int row, int col, int size)
 {
     int sum = 0, count = 0;
@@ -84,8 +70,7 @@ int computeNeighborAverage(int *matrix, int row, int col, int size)
         {
             int neighborRow = row + dx;
             int neighborCol = col + dy;
-            if (neighborRow >= 0 && neighborRow < size && neighborCol >= 0 && neighborCol < size &&
-                isPixelValid(*(matrix + neighborRow * size + neighborCol)))
+            if (neighborRow >= 0 && neighborRow < size && neighborCol >= 0 && neighborCol < size )
             {
                 sum += *(matrix + neighborRow * size + neighborCol);
                 count++;
@@ -95,7 +80,6 @@ int computeNeighborAverage(int *matrix, int row, int col, int size)
     return sum / count;
 }
 
-// Apply 3×3 smoothing filter
 void applySmoothingFilter(int *inputMatrix, int *outputMatrix, int size)
 {
     for (int row = 0; row < size; row++)

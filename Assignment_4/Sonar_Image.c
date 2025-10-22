@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include<time.h>
+#include <time.h>
+
 void generateRandomMatrix(int *matrix, int size)
 {
     srand(time(NULL));
@@ -12,7 +13,7 @@ void generateRandomMatrix(int *matrix, int size)
         }
     }
 }
- 
+
 void printMatrix(int *matrix, int size, const char *title)
 {
     printf("\n%s\n", title);
@@ -38,7 +39,7 @@ void transposeMatrix(int *matrix, int size)
         }
     }
 }
- 
+
 void reverseRows(int *matrix, int size)
 {
     for (int row = 0; row < size; row++)
@@ -70,7 +71,7 @@ int computeNeighborAverage(int *matrix, int row, int col, int size)
         {
             int neighborRow = row + dx;
             int neighborCol = col + dy;
-            if (neighborRow >= 0 && neighborRow < size && neighborCol >= 0 && neighborCol < size )
+            if (neighborRow >= 0 && neighborRow < size && neighborCol >= 0 && neighborCol < size)
             {
                 sum += *(matrix + neighborRow * size + neighborCol);
                 count++;
@@ -91,6 +92,31 @@ void applySmoothingFilter(int *inputMatrix, int *outputMatrix, int size)
     }
 }
 
+int getValidatedMatrixSize()
+{
+    int matrixSize;
+    char extraChar;
+
+    while (1)
+    {
+        printf("Enter matrix size (between 2 and 10): ");
+        if (scanf("%d%c", &matrixSize, &extraChar) != 2 || extraChar != '\n')
+        {
+            printf("Invalid input! Please enter a valid integer.\n");
+            while (getchar() != '\n');  
+            continue;
+        }
+
+        if (matrixSize < 2 || matrixSize > 10)
+        {
+            printf("Invalid size! Please enter a number between 2 and 10.\n");
+            continue;
+        }
+
+        return matrixSize;
+    }
+}
+
 int main()
 {
     int matrixSize;
@@ -98,16 +124,7 @@ int main()
 
     do
     {
-        do
-        {
-            printf("Enter matrix size (between 2 and 10): ");
-            scanf("%d", &matrixSize);
-
-            if (matrixSize < 2 || matrixSize > 10)
-            {
-                printf("Invalid size! Please enter a number between 2 and 10.\n");
-            }
-        } while (matrixSize < 2 || matrixSize > 10);
+        matrixSize = getValidatedMatrixSize();
 
         int *originalMatrix = (int *)malloc(matrixSize * matrixSize * sizeof(int));
         int *smoothedMatrix = (int *)malloc(matrixSize * matrixSize * sizeof(int));

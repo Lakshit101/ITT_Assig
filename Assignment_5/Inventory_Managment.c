@@ -6,9 +6,12 @@
 
 #define MIN_PRODUCT_ID 1
 #define MAX_PRODUCT_ID 10000
+
 #define MAX_NAME_LENGTH 50
+
 #define MIN_PRICE 0
 #define MAX_PRICE 100000
+
 #define MIN_QUANTITY 0
 #define MAX_QUANTITY 1000000
 
@@ -37,6 +40,18 @@ int upperToLower(int character)
         return character + ('a' - 'A');
     }
     return character;
+}
+
+int findCharPosition(const char *str, char ch)
+{
+    int i = 0;
+    while (str[i] != '\0')
+    {
+        if (str[i] == ch)
+            return i;
+        i++;
+    }
+    return i;
 }
 
 bool isUniqueID(Product *products, int productCount, int id)
@@ -107,14 +122,12 @@ bool isValidName(const char *name)
     if (name == NULL)
         return false;
 
- 
     while (*name == ' ')
         name++;
 
     if (*name == '\0')
-        return false; 
+        return false;
 
- 
     if (getStringLength(name) > MAX_NAME_LENGTH)
     {
         return false;
@@ -124,11 +137,11 @@ bool isValidName(const char *name)
     {
         if (!isalnum(name[i]) && name[i] != ' ' && name[i] != '-' && name[i] != '_')
         {
-            return false;  
+            return false;
         }
     }
 
-    return true;  
+    return true;
 }
 
 bool isValidProductID(int id, Product *products, int productCount)
@@ -146,7 +159,7 @@ bool isValidProductID(int id, Product *products, int productCount)
     return true;
 }
 
-void getProductDetails(Product *product, Product *products, int productCount)
+void inputProductID(Product *product, Product *products, int productCount)
 {
     int id;
     do
@@ -166,13 +179,15 @@ void getProductDetails(Product *product, Product *products, int productCount)
         }
         clearInputBuffer();
     } while (1);
+}
 
-   
+void inputProductName(Product *product)
+{
     do
     {
         printf("Product Name: ");
         fgets(product->name, sizeof(product->name), stdin);
-        product->name[strcspn(product->name, "\n")] = 0;
+        product->name[findCharPosition(product->name, '\n')] = '\0';
 
         if (!isValidName(product->name))
         {
@@ -181,8 +196,10 @@ void getProductDetails(Product *product, Product *products, int productCount)
         }
         break;
     } while (1);
+}
 
-     
+void inputProductPrice(Product *product)
+{
     printf("Product Price: ");
     while (scanf("%f", &product->price) != 1 || !isValidPrice(product->price))
     {
@@ -190,8 +207,10 @@ void getProductDetails(Product *product, Product *products, int productCount)
         clearInputBuffer();
     }
     clearInputBuffer();
+}
 
-   
+void inputProductQuantity(Product *product)
+{
     printf("Product Quantity: ");
     while (scanf("%d", &product->quantity) != 1 || !isValidQuantity(product->quantity))
     {
@@ -200,6 +219,15 @@ void getProductDetails(Product *product, Product *products, int productCount)
     }
     clearInputBuffer();
 }
+
+void getProductDetails(Product *product, Product *products, int productCount)
+{
+    inputProductID(product, products, productCount);
+    inputProductName(product);
+    inputProductPrice(product);
+    inputProductQuantity(product);
+}
+
 
 void addInitialProducts(int initialCount, Product *products, int *productCount)
 {
@@ -268,6 +296,7 @@ void updateProductQuantity(int productCount, Product *products)
     }
     printf("No product found with ID %d\n", id);
 }
+
 Product *searchProductByID(int productCount, Product *products, int id)
 {
     for (int i = 0; i < productCount; i++)
@@ -304,7 +333,7 @@ void searchAndDisplayByName(int productCount, Product *products)
     char searchName[100];
     printf("Enter name to search (partial allowed): ");
     fgets(searchName, sizeof(searchName), stdin);
-    searchName[strcspn(searchName, "\n")] = 0;
+    searchName[findCharPosition(searchName, '\n')] = '\0';
 
     bool found = false;
     printf("Products Found:\n");
@@ -377,7 +406,6 @@ void deleteProduct(int *totalProducts, Product **products, int *productCount)
             }
             (*productCount)--;
 
-            
             if (*totalProducts > *productCount)
             {
                 Product *temp = realloc(*products, (*productCount) * sizeof(Product));
@@ -395,34 +423,10 @@ void deleteProduct(int *totalProducts, Product **products, int *productCount)
     printf("No product found with ID %d\n", id);
 }
 
-int main()
+void showMenu(Product **products, int *totalProducts, int *productCount)
 {
-    int totalProducts;
-    int productCount = 0;
-    
-    do
-    {
-        printf("Enter initial number of products: ");
-        if (scanf("%d", &totalProducts) != 1)
-        {
-            printf("Invalid input. Please enter a number.\n");
-            clearInputBuffer();
-            continue;
-        }
-        break;
-    } while (1);
-    clearInputBuffer();
-
-    Product *products = (Product *)calloc(totalProducts, sizeof(Product));
-    if (products == NULL)
-    {
-        printf("Memory allocation failed!\n");
-        exit(1);
-    }
-
-    addInitialProducts(totalProducts, products, &productCount);
-
     int choice;
+
     do
     {
         printf("\n========= INVENTORY MENU =========\n");
@@ -448,25 +452,25 @@ int main()
         switch (choice)
         {
         case 1:
-            addNewProduct(&totalProducts, &products, &productCount);
+            addNewProduct(totalProducts, products, productCount);
             break;
         case 2:
-            displayAllProducts(productCount, products);
+            displayAllProducts(*productCount, *products);
             break;
         case 3:
-            updateProductQuantity(productCount, products);
+            updateProductQuantity(*productCount, *products);
             break;
         case 4:
-            searchAndDisplayByID(productCount, products);
+            searchAndDisplayByID(*productCount, *products);
             break;
         case 5:
-            searchAndDisplayByName(productCount, products);
+            searchAndDisplayByName(*productCount, *products);
             break;
         case 6:
-            searchAndDisplayByPriceRange(productCount, products);
+            searchAndDisplayByPriceRange(*productCount, *products);
             break;
         case 7:
-            deleteProduct(&totalProducts, &products, &productCount);
+            deleteProduct(totalProducts, products, productCount);
             break;
         case 8:
             printf("Memory released successfully. Exiting program...\n");
@@ -476,6 +480,36 @@ int main()
             break;
         }
     } while (choice != 8);
+}
+
+int main()
+{
+    int totalProducts;
+    int productCount = 0;
+
+    do
+    {
+        printf("Enter initial number of products: ");
+        if (scanf("%d", &totalProducts) != 1)
+        {
+            printf("Invalid input. Please enter a number.\n");
+            clearInputBuffer();
+            continue;
+        }
+        break;
+    } while (1);
+    clearInputBuffer();
+
+    Product *products = (Product *)calloc(totalProducts, sizeof(Product));
+    if (products == NULL)
+    {
+        printf("Memory allocation failed!\n");
+        exit(1);
+    }
+
+    addInitialProducts(totalProducts, products, &productCount);
+
+    showMenu(&products, &totalProducts, &productCount);
 
     free(products);
     return 0;

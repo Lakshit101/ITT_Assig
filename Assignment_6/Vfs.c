@@ -6,6 +6,12 @@
 #define BLOCK_SIZE 512
 #define MAX_BLOCK 1024
 
+int myStrcmp(const char *s1, const char *s2);
+char *myStrcpy(char *dest, const char *src);
+size_t myStrcspn(const char *s, const char *reject);
+char *myStrtok(char *str, const char *delim);
+double myCeil(double x);
+
 typedef struct FreeNode{
     int index;
     struct FreeNode* prev;
@@ -50,7 +56,7 @@ void freeDoublyLinkedList();
 
 
 int main(){
-    gFreeNodeHead=createFreeNodeList();  
+    gFreeNodeHead=createFreeNodeList();    
 
     FileNode* root=createFileNode(0,NULL , "/");
     FileNode* PWD=root;
@@ -62,27 +68,27 @@ int main(){
         printf("%s>",PWD->name);
         fgets(terminalInput ,60 , stdin);
 
-        terminalInput[strcspn(terminalInput, "\n")] = 0;
+        terminalInput[myStrcspn(terminalInput, "\n")] = 0;
 
-        char* command=strtok(terminalInput, " ");
-        char* name=strtok(NULL, " ");
+        char* command=myStrtok(terminalInput, " ");
+        char* name=myStrtok(NULL, " ");
 
-        if( strcmp(command , "exit") == 0){
+        if( myStrcmp(command , "exit") == 0){
             printf("Memory released. Exiting program...\n");
             freeAllMemory(root);
             freeDoublyLinkedList();
             free(root);
             exit(0);
         }
-        else if( strcmp(command , "mkdir") == 0){
+        else if( myStrcmp(command , "mkdir") == 0){
             if(name==NULL){
                 printf("Please Enter a valid directory name.\n");
             }else
                 mkdirCommand( PWD, name);
-        }else if( strcmp(command , "ls") == 0){
+        }else if( myStrcmp(command , "ls") == 0){
             lsCommand(PWD->child);
-        }else if( strcmp(command, "cd") == 0){
-            if( strcmp(name , "..") == 0){
+        }else if( myStrcmp(command, "cd") == 0){
+            if( myStrcmp(name , "..") == 0){
                 if(PWD==root){
                     printf("No parent Directory , you are in root.\n");
                 }else
@@ -90,24 +96,24 @@ int main(){
             }else{
                 cdCommand(&PWD , name);
             }
-        }else if( strcmp(command , "rmdir")==0){
+        }else if( myStrcmp(command , "rmdir")==0){
             rmdirCommand(PWD,name);
-        }else if( strcmp(command , "create") == 0){
+        }else if( myStrcmp(command , "create") == 0){
             if(name==NULL)
                 printf("Please enter a valid file name.\n");
-            else   
+            else    
                 createCommand(PWD,name);
-        }else if(strcmp(command , "pwd")==0){
+        }else if(myStrcmp(command , "pwd")==0){
             pwdCommand(PWD,root);
             printf("\n");
-        }else if(strcmp(command , "write")==0){
-            char* fileContent=strtok(NULL ,"\n");
+        }else if(myStrcmp(command , "write")==0){
+            char* fileContent=myStrtok(NULL ,"\n");
             writeCommand(PWD,name,fileContent);
-        }else if(strcmp(command, "read")==0){
+        }else if(myStrcmp(command, "read")==0){
             readCommand(PWD,name);
-        }else if(strcmp(command , "df")==0){
+        }else if(myStrcmp(command , "df")==0){
             dfCommand();
-        }else if(strcmp(command , "delete")==0){
+        }else if(myStrcmp(command , "delete")==0){
             deleteCommand(PWD,name);
         }else{
             printf("Enter a valid command.\n");
@@ -117,13 +123,13 @@ int main(){
 
 
 FileNode* createFileNode(int type,FileNode* parent ,char* name){
-    FileNode* temp=(FileNode*)malloc(sizeof(FileNode));
+    FileNode* temp=(FileNode*)malloc(sizeof(FileNode)); 
     if(temp==NULL){
         printf("Memory allocatio Fail\n");
         free(temp);
         exit(1);
     }
-    strcpy(temp->name,name);
+    myStrcpy(temp->name,name);
     temp->type=type;
     temp->parent=parent;
     temp->child=NULL;
@@ -171,7 +177,7 @@ FileNode* isPresent(FileNode* tail,char* name){
     
     FileNode* temp=tail;
     do{
-        if(strcmp(temp->name , name) == 0)
+        if(myStrcmp(temp->name , name) == 0)
             return temp;
         temp=temp->nextSibling;
     }while(temp!=tail);
@@ -186,7 +192,7 @@ void cdCommand(FileNode** PWD , char* name){
     
     FileNode* temp= (*PWD)->child;
     do{
-        if(strcmp(temp->name , name) == 0){
+        if(myStrcmp(temp->name , name) == 0){
             *PWD=temp;
             printf("Moved to /%s\n",name);
             return ;
@@ -255,7 +261,7 @@ void pwdCommand(FileNode* PWD ,FileNode* root){
 }
 
 FreeNode* createFreeNode(int index){
-    FreeNode* temp=(FreeNode*)malloc(sizeof(FileNode));
+    FreeNode* temp=(FreeNode*)malloc(sizeof(FreeNode)); 
     if(temp==NULL){
         printf("Memory allocation fails.\n");
         exit(1);
@@ -294,21 +300,33 @@ void writeCommand(FileNode* PWD , char* name , char* fileContent){
         while( fileContent[sizeOfContent]!='\0')
             sizeOfContent++;
 
-        int BlockNeeded=ceil((double)sizeOfContent/BLOCK_SIZE);
+        int BlockNeeded=myCeil((double)sizeOfContent/BLOCK_SIZE);
         
         if(BlockNeeded > gNumberOfFreeNodes){
             printf("Insufficient Memory.\n");
             return;
         }
+        for(int block = 0 ;block < file->blockPointerCount ; block++){
+            deallocateMemory(file->blockPointer[block]);
+        }
+        
         file->blockPointerCount=BlockNeeded;
 
         for(int block = 0 ; block <BlockNeeded ; block++ ){
             file->blockPointer[block]=allocateMemory();
         }
         
+        int contentIndex = 0;
+        int i; // <--- Corrected declaration position
         for(int block=0 ; block<BlockNeeded ; block++){
-            for(int i = 0 ; fileContent[i]!='\0' && i<BLOCK_SIZE ; i++){
-                virtualDisk[file->blockPointer[block]][i]=fileContent[i];
+            
+            // Loop now uses the external 'i'
+            for(i = 0 ; contentIndex < sizeOfContent && i<BLOCK_SIZE ; i++){ 
+                virtualDisk[file->blockPointer[block]][i]=fileContent[contentIndex++];
+            }
+            
+            if(contentIndex >= sizeOfContent) {
+                virtualDisk[file->blockPointer[block]][i] = '\0'; // 'i' is now in scope
             }
         }
 
@@ -335,7 +353,7 @@ void dfCommand(){
     printf("Total Blocks : %d\n",MAX_BLOCK);
     printf("Used Blocks : %d\n",MAX_BLOCK - gNumberOfFreeNodes);
     printf("Free Block : %d\n",gNumberOfFreeNodes);
-    printf("Disk Usage : %.2lf%%\n", (MAX_BLOCK  - gNumberOfFreeNodes) / 100.00);
+    printf("Disk Usage : %.2lf%%\n", (double)(MAX_BLOCK - gNumberOfFreeNodes) / MAX_BLOCK * 100.00); 
 }
 
 int allocateMemory(){
@@ -380,6 +398,12 @@ void freeAllMemory(FileNode* root){
         if(temp->child!=NULL){
             freeAllMemory(temp);
         }
+        if(temp->type == 1) { 
+            for(int block = 0 ;block < temp->blockPointerCount ; block++){
+                deallocateMemory(temp->blockPointer[block]);
+            }
+        }
+        
         FileNode* toDelete=temp;
         temp=temp->nextSibling;
         free(toDelete);
@@ -393,5 +417,80 @@ void freeDoublyLinkedList(){
         if(gFreeNodeHead!=NULL)
             gFreeNodeHead->prev=NULL;
         free(toDelete);
+    }
+}
+
+int myStrcmp(const char *s1, const char *s2) {
+    while (*s1 && (*s1 == *s2)) {
+        s1++;
+        s2++;
+    }
+    return *(const unsigned char*)s1 - *(const unsigned char*)s2;
+}
+
+char *myStrcpy(char *dest, const char *src) {
+    char *original_dest = dest;
+    while ((*dest++ = *src++));
+    return original_dest;
+}
+
+size_t myStrcspn(const char *s, const char *reject) {
+    size_t count = 0;
+    const char *p;
+    while (*s != '\0') {
+        p = reject;
+        while (*p != '\0') {
+            if (*s == *p) {
+                return count;
+            }
+            p++;
+        }
+        s++;
+        count++;
+    }
+    return count;
+}
+
+char *myStrtok(char *str, const char *delim) {
+    static char *last = NULL;
+    if (str != NULL) {
+        last = str;
+    }
+    if (last == NULL || *last == '\0') {
+        return NULL;
+    }
+
+    char *token_start = last;
+    
+    while (*token_start != '\0' && *token_start == *delim) {
+        token_start++;
+    }
+    
+    if (*token_start == '\0') {
+        last = NULL;
+        return NULL;
+    }
+
+    char *token_end = token_start;
+    while (*token_end != '\0' && *token_end != *delim) {
+        token_end++;
+    }
+
+    if (*token_end != '\0') {
+        *token_end = '\0';
+        last = token_end + 1;
+    } else {
+        last = NULL;
+    }
+
+    return token_start;
+}
+
+double myCeil(double x) {
+    int whole = (int)x;
+    if (x > whole) {
+        return (double)(whole + 1);
+    } else {
+        return (double)whole;
     }
 }

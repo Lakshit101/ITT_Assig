@@ -122,31 +122,58 @@ int main(){
 }
 
 
-FileNode* createFileNode(int type,FileNode* parent ,char* name){
-    FileNode* temp=(FileNode*)malloc(sizeof(FileNode)); 
-    if(temp==NULL){
-        printf("Memory allocatio Fail\n");
-        free(temp);
+FileNode* createFileNode(int type, FileNode* parent, char* name) {
+    FileNode* temp = (FileNode*)malloc(sizeof(FileNode));
+    if (temp == NULL) {
+        printf("Memory allocation failed.\n");
         exit(1);
     }
-    myStrcpy(temp->name,name);
-    temp->type=type;
-    temp->parent=parent;
-    temp->child=NULL;
-    temp->nextSibling=NULL;
+
+    myStrcpy(temp->name, name);
+    temp->type = type;
+    temp->parent = parent;
+    temp->child = NULL;
+    temp->nextSibling = NULL;
+
+    temp->blockPointerCount = 0;
+
+    for (int i = 0; i < 512; i++) {
+        temp->blockPointer[i] = -1;
+    }
+
     return temp;
 }
 
-
-void addChild(FileNode* parent , FileNode* newNode){
-    if(parent->child==NULL){
-        parent->child=newNode;
-        newNode->nextSibling=newNode;
-    }else{
-        newNode->nextSibling=parent->child->nextSibling;
-        parent->child->nextSibling=newNode;
+void addChild(FileNode* parent, FileNode* newNode) {
+    if (parent == NULL || newNode == NULL) {
+        printf("Error: Invalid parent or new node.\n");
+        return;
     }
+
+    if (parent->child == NULL) {
+        parent->child = newNode;
+        newNode->nextSibling = newNode;  
+        return;
+    }
+
+    FileNode* head = parent->child;
+    FileNode* tail = head;
+
+    int safetyCounter = 0;
+    while (tail->nextSibling != head) {
+        tail = tail->nextSibling;
+        safetyCounter++;
+        if (safetyCounter > 10000) { 
+            printf("Warning: Corrupted sibling list detected. Resetting list.\n");
+            head->nextSibling = head;  
+            tail = head;
+            break;
+        }
+    }
+    newNode->nextSibling = head;
+    tail->nextSibling = newNode;
 }
+
 
 void lsCommand(FileNode* tail){
     if(tail==NULL){
@@ -186,41 +213,64 @@ FileNode* isPresent(FileNode* tail,char* name){
 
 void cdCommand(FileNode** PWD , char* name){
     if( (*PWD)->child==NULL ){
-        printf("NO %s directory exists",name);
+        printf("Directory %s not found.\n", name);
         return ;
     }
     
-    FileNode* temp= (*PWD)->child;
-    do{
+    FileNode* start = (*PWD)->child->nextSibling;  
+    FileNode* end = (*PWD)->child;                  
+
+    FileNode* temp = start;
+
+    do {
         if(myStrcmp(temp->name , name) == 0){
-            *PWD=temp;
+            if (temp->type == 1) {
+                printf("%s is a file, not a directory.\n", name);
+                return;
+            }
+            *PWD = temp;
             printf("Moved to /%s\n",name);
-            return ;
+            return;
         }
         temp=temp->nextSibling;
-    }while(temp!= *PWD);
+    } while(temp != start);  
+
+    printf("Directory %s not found.\n", name); 
     return ;
 }
 
 FileNode* deleteFileNode(FileNode* tail , FileNode* target){
 
-    FileNode* temp=tail;
+    if (tail == NULL || target == NULL) {
+        return tail;
+    }
 
-    do{
-        if(temp->nextSibling==target){
-            if(temp->nextSibling == temp){
-                free(temp);
-                return NULL;
-            }else{
-                FileNode* toDelete=temp->nextSibling;
-                temp->nextSibling=temp->nextSibling->nextSibling;
-                free(toDelete);
-                break;
+    if (tail == target && tail->nextSibling == tail) {
+        free(target);
+        return NULL;
+    }
+
+    FileNode* temp = tail; 
+    
+    do {
+        if (temp->nextSibling == target) {
+            FileNode* toDelete = temp->nextSibling;
+            
+            temp->nextSibling = target->nextSibling;
+            
+            if (target == tail) {
+                tail = temp; 
             }
+
+            free(toDelete);
+            return tail;
         }
-        temp=temp->nextSibling;
-    }while(temp!=tail);
-    return temp;
+        
+        temp = temp->nextSibling;
+
+    } while(temp != tail);
+    
+    return tail;
 }
 
 void rmdirCommand(FileNode* PWD,char* name){
@@ -313,20 +363,24 @@ void writeCommand(FileNode* PWD , char* name , char* fileContent){
         file->blockPointerCount=BlockNeeded;
 
         for(int block = 0 ; block <BlockNeeded ; block++ ){
-            file->blockPointer[block]=allocateMemory();
+            int allocatedIndex = allocateMemory();
+            if (allocatedIndex == -1) {
+                printf("Insufficient Memory.\n"); 
+                return;
+            }
+            file->blockPointer[block]=allocatedIndex;
         }
         
         int contentIndex = 0;
-        int i; // <--- Corrected declaration position
+        int i;
         for(int block=0 ; block<BlockNeeded ; block++){
             
-            // Loop now uses the external 'i'
             for(i = 0 ; contentIndex < sizeOfContent && i<BLOCK_SIZE ; i++){ 
                 virtualDisk[file->blockPointer[block]][i]=fileContent[contentIndex++];
             }
             
             if(contentIndex >= sizeOfContent) {
-                virtualDisk[file->blockPointer[block]][i] = '\0'; // 'i' is now in scope
+                virtualDisk[file->blockPointer[block]][i] = '\0';
             }
         }
 
@@ -356,13 +410,18 @@ void dfCommand(){
     printf("Disk Usage : %.2lf%%\n", (double)(MAX_BLOCK - gNumberOfFreeNodes) / MAX_BLOCK * 100.00); 
 }
 
-int allocateMemory(){
-    int index=gFreeNodeHead->index;
-    gFreeNodeHead=gFreeNodeHead->next;
+int allocateMemory() {
+    if (gFreeNodeHead == NULL) {
+        printf("Error: Disk is full! No free blocks available.\n");
+        return -1; 
+    }
+    int index = gFreeNodeHead->index;
+    gFreeNodeHead = gFreeNodeHead->next;
     gNumberOfFreeNodes--;
-    if(gFreeNodeHead!=NULL)
-        gFreeNodeHead->prev=NULL;
-    
+
+    if (gFreeNodeHead != NULL)
+        gFreeNodeHead->prev = NULL;
+
     return index;
 }
 
@@ -384,9 +443,16 @@ void deleteCommand(FileNode* PWD ,char* name){
 
 void deallocateMemory(int index){
     FreeNode* toADD=createFreeNode(index);
-    gFreeNodeTail->next=toADD;
-    toADD->prev=gFreeNodeTail;
-    gFreeNodeTail=gFreeNodeTail->next;
+    
+    if (gFreeNodeTail == NULL) {
+        gFreeNodeHead = toADD;
+        gFreeNodeTail = toADD;
+    } else {
+        gFreeNodeTail->next=toADD;
+        toADD->prev=gFreeNodeTail;
+        gFreeNodeTail=gFreeNodeTail->next;
+    }
+    
     gNumberOfFreeNodes++;
 }
 

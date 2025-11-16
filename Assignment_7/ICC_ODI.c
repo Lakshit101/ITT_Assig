@@ -11,7 +11,7 @@ struct player
 };
 
 #define NAME_LENGTH 51
-#define NUMBER_OF_PLAYER_ID 1500
+#define NUMBER_OF_PLAYER_ID 1000
 #define NUMBER_OF_TEAMS 10
 
 typedef struct playerNode

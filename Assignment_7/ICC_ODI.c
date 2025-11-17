@@ -378,33 +378,40 @@ void showTeamPlayers()
     printf("Average Batting Strike Rate: %.2f\n", Teams[teamID - 1].battingAverageStrikeRate);
 }
 
-void displayTeamsBySR()
+void showTopKPlayers()
 {
-    int teamIndices[teamCount];
-    for (int i = 0; i < teamCount; i++)
-        teamIndices[i] = i;
+    printf("Enter Team ID: ");
+    int teamID = getValidTeamId();
+    printf("Enter Role:\n 1.Batsman\n 2.Bowler\n 3.All-rounder\n ");
+    int role = getValidRole();
+    printf("Enter number of players: ");
+    int k = getValidInteger();
 
-    for (int i = 0; i < teamCount; i++)
+    printf("Top %d %s of Team %s\n",
+           k,
+           (role == 1 ? "Batsmen" : (role == 2 ? "Bowlers" : "All-rounders")),
+           Teams[teamID - 1].name);
+
+    printf("\n------------------------------------------------------------------------------------------------------\n");
+    printf("%-5s %-20s %-15s %-8s %-8s %-8s %-8s %-8s %-12s\n",
+           "ID", "Name", "Role", "Runs", "Avg", "SR", "Wkts", "ER", "Perf. Index");
+    printf("\n------------------------------------------------------------------------------------------------------\n");
+
+    playerNode *temp;
+    if (role == 1)
+        temp = Teams[teamID - 1].batsmen;
+    else if (role == 2)
+        temp = Teams[teamID - 1].bowlers;
+    else
+        temp = Teams[teamID - 1].allRounders;
+
+    while (k-- && temp != NULL)
     {
-        for (int j = 0; j < teamCount - i - 1; j++)
-        {
-            if (Teams[teamIndices[j]].batterAllRounderAvgStrikeRate <
-                Teams[teamIndices[j + 1]].batterAllRounderAvgStrikeRate)
-            {
-                int temp = teamIndices[j];
-                teamIndices[j] = teamIndices[j + 1];
-                teamIndices[j + 1] = temp;
-            }
-        }
+        playerDetails(temp);
+        temp = temp->next;
     }
 
-    printf("\nTeams sorted by Average Strike Rate of Batsmen + All-rounders:\n\n");
-    for (int i = 0; i < teamCount; i++)
-    {
-        int t = teamIndices[i];
-        printf("%d. %s (Avg SR: %.2f)\n",
-               i + 1, Teams[t].name, Teams[t].batterAllRounderAvgStrikeRate);
-    }
+    printf("\n------------------------------------------------------------------------------------------------------\n");
 }
 
 void showPlayersByRole()
@@ -459,40 +466,33 @@ void showPlayersByRole()
     printf("\n------------------------------------------------------------------------------------------------------\n");
 }
 
-void showTopKPlayers()
+void displayTeamsBySR()
 {
-    printf("Enter Team ID: ");
-    int teamID = getValidTeamId();
-    printf("Enter Role:\n 1.Batsman\n 2.Bowler\n 3.All-rounder\n ");
-    int role = getValidRole();
-    printf("Enter number of players: ");
-    int k = getValidInteger();
+    int teamIndices[teamCount];
+    for (int i = 0; i < teamCount; i++)
+        teamIndices[i] = i;
 
-    printf("Top %d %s of Team %s\n",
-           k,
-           (role == 1 ? "Batsmen" : (role == 2 ? "Bowlers" : "All-rounders")),
-           Teams[teamID - 1].name);
-
-    printf("\n------------------------------------------------------------------------------------------------------\n");
-    printf("%-5s %-20s %-15s %-8s %-8s %-8s %-8s %-8s %-12s\n",
-           "ID", "Name", "Role", "Runs", "Avg", "SR", "Wkts", "ER", "Perf. Index");
-    printf("\n------------------------------------------------------------------------------------------------------\n");
-
-    playerNode *temp;
-    if (role == 1)
-        temp = Teams[teamID - 1].batsmen;
-    else if (role == 2)
-        temp = Teams[teamID - 1].bowlers;
-    else
-        temp = Teams[teamID - 1].allRounders;
-
-    while (k-- && temp != NULL)
+    for (int i = 0; i < teamCount; i++)
     {
-        playerDetails(temp);
-        temp = temp->next;
+        for (int j = 0; j < teamCount - i - 1; j++)
+        {
+            if (Teams[teamIndices[j]].batterAllRounderAvgStrikeRate <
+                Teams[teamIndices[j + 1]].batterAllRounderAvgStrikeRate)
+            {
+                int temp = teamIndices[j];
+                teamIndices[j] = teamIndices[j + 1];
+                teamIndices[j + 1] = temp;
+            }
+        }
     }
 
-    printf("\n------------------------------------------------------------------------------------------------------\n");
+    printf("\nTeams sorted by Average Strike Rate of Batsmen + All-rounders:\n\n");
+    for (int i = 0; i < teamCount; i++)
+    {
+        int t = teamIndices[i];
+        printf("%d. %s (Avg SR: %.2f)\n",
+               i + 1, Teams[t].name, Teams[t].batterAllRounderAvgStrikeRate);
+    }
 }
 
 void Menu()

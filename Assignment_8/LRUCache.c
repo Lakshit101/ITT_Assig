@@ -1,12 +1,48 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 #define HASH_TABLE_SIZE 2048
 #define MAX_VALUE_LENGTH 64
 #define COMMAND_MAX_LEN 32
 
-typedef struct QueueNode {
+char *stringCopy(char *str1, char *str2)
+{
+    char *start = str1;
+    while (*str2 != '\0')
+    {
+        *str1 = *str2;
+        str1++;
+        str2++;
+    }
+    *str1 = '\0';
+    return start;
+}
+
+int toLowerCase(char c)
+{
+    if (c >= 'A' && c <= 'Z')
+        return c + 32;
+    return c;
+}
+
+int myStrcmp(char *s1, char *s2)
+{
+    while (*s1 != '\0' && *s2 != '\0')
+    {
+        char c1 = toLowerCase(*s1);
+        char c2 = toLowerCase(*s2);
+
+        if (c1 != c2)
+            return c1 - c2;
+
+        s1++;
+        s2++;
+    }
+    return toLowerCase(*s1) - toLowerCase(*s2);
+}
+
+typedef struct QueueNode
+{
     int key;
     char value[MAX_VALUE_LENGTH];
     struct QueueNode *prev;
@@ -14,7 +50,8 @@ typedef struct QueueNode {
     struct QueueNode *hashNext;
 } QueueNode;
 
-typedef struct LruCache {
+typedef struct LruCache
+{
     int capacity;
     int count;
     QueueNode *head;
@@ -22,35 +59,49 @@ typedef struct LruCache {
     QueueNode *hashTable[HASH_TABLE_SIZE];
 } LruCache;
 
-unsigned int getHashIndex(int key) {
+unsigned int getHashIndex(int key)
+{
     return (unsigned int)key % HASH_TABLE_SIZE;
 }
 
-void detachNode(LruCache *cache, QueueNode *node) {
-    if (node->prev != NULL) node->prev->next = node->next;
-    else cache->head = node->next;
+void detachNode(LruCache *cache, QueueNode *node)
+{
+    if (node->prev != NULL)
+        node->prev->next = node->next;
+    else
+        cache->head = node->next;
 
-    if (node->next != NULL) node->next->prev = node->prev;
-    else cache->tail = node->prev;
+    if (node->next != NULL)
+        node->next->prev = node->prev;
+    else
+        cache->tail = node->prev;
 }
 
-void insertAtHead(LruCache *cache, QueueNode *node) {
+void insertAtHead(LruCache *cache, QueueNode *node)
+{
     node->next = cache->head;
     node->prev = NULL;
-    if (cache->head != NULL) cache->head->prev = node;
+    if (cache->head != NULL)
+        cache->head->prev = node;
     cache->head = node;
-    if (cache->tail == NULL) cache->tail = node;
+    if (cache->tail == NULL)
+        cache->tail = node;
 }
 
-void removeFromHashTable(LruCache *cache, QueueNode *targetNode) {
+void removeFromHashTable(LruCache *cache, QueueNode *targetNode)
+{
     unsigned int hashIndex = getHashIndex(targetNode->key);
     QueueNode *current = cache->hashTable[hashIndex];
     QueueNode *prev = NULL;
 
-    while (current != NULL) {
-        if (current == targetNode) {
-            if (prev == NULL) cache->hashTable[hashIndex] = current->hashNext;
-            else prev->hashNext = current->hashNext;
+    while (current != NULL)
+    {
+        if (current == targetNode)
+        {
+            if (prev == NULL)
+                cache->hashTable[hashIndex] = current->hashNext;
+            else
+                prev->hashNext = current->hashNext;
             return;
         }
         prev = current;
@@ -58,8 +109,11 @@ void removeFromHashTable(LruCache *cache, QueueNode *targetNode) {
     }
 }
 
-void removeLruNode(LruCache *cache) {
-    if (cache->tail == NULL) return;
+void removeLruNode(LruCache *cache)
+{
+    if (cache->tail == NULL)
+        return;
+
     QueueNode *lruNode = cache->tail;
     detachNode(cache, lruNode);
     removeFromHashTable(cache, lruNode);
@@ -67,9 +121,11 @@ void removeLruNode(LruCache *cache) {
     cache->count--;
 }
 
-void freeCache(LruCache *cache) {
+void freeCache(LruCache *cache)
+{
     QueueNode *current = cache->head;
-    while (current != NULL) {
+    while (current != NULL)
+    {
         QueueNode *next = current->next;
         free(current);
         current = next;
@@ -77,11 +133,14 @@ void freeCache(LruCache *cache) {
     free(cache);
 }
 
-LruCache *createCache(int capacity) {
-    if (capacity <= 0) return NULL;
+LruCache *createCache(int capacity)
+{
+    if (capacity <= 0)
+        return NULL;
 
     LruCache *newCache = (LruCache *)malloc(sizeof(LruCache));
-    if (!newCache) exit(1);
+    if (!newCache)
+        exit(1);
 
     newCache->capacity = capacity;
     newCache->count = 0;
@@ -94,14 +153,18 @@ LruCache *createCache(int capacity) {
     return newCache;
 }
 
-char *get(LruCache *cache, int key) {
-    if (key < 0) return NULL;
+char *get(LruCache *cache, int key)
+{
+    if (key < 0)
+        return NULL;
 
     unsigned int hashIndex = getHashIndex(key);
     QueueNode *node = cache->hashTable[hashIndex];
 
-    while (node != NULL) {
-        if (node->key == key) {
+    while (node != NULL)
+    {
+        if (node->key == key)
+        {
             detachNode(cache, node);
             insertAtHead(cache, node);
             return node->value;
@@ -111,15 +174,19 @@ char *get(LruCache *cache, int key) {
     return NULL;
 }
 
-void put(LruCache *cache, int key, char *value) {
-    if (key < 0) return;
+void put(LruCache *cache, int key, char *value)
+{
+    if (key < 0)
+        return;
 
     unsigned int hashIndex = getHashIndex(key);
     QueueNode *node = cache->hashTable[hashIndex];
 
-    while (node != NULL) {
-        if (node->key == key) {
-            strcpy(node->value, value);
+    while (node != NULL)
+    {
+        if (node->key == key)
+        {
+            stringCopy(node->value, value);
             detachNode(cache, node);
             insertAtHead(cache, node);
             return;
@@ -128,10 +195,11 @@ void put(LruCache *cache, int key, char *value) {
     }
 
     QueueNode *newNode = (QueueNode *)malloc(sizeof(QueueNode));
-    if (!newNode) exit(1);
+    if (!newNode)
+        exit(1);
 
     newNode->key = key;
-    strcpy(newNode->value, value);
+    stringCopy(newNode->value, value);
     newNode->prev = NULL;
     newNode->next = NULL;
     newNode->hashNext = NULL;
@@ -147,7 +215,8 @@ void put(LruCache *cache, int key, char *value) {
     cache->count++;
 }
 
-void initializeProgram() {
+void initializeProgram()
+{
     char command[COMMAND_MAX_LEN];
     int key;
     char value[MAX_VALUE_LENGTH];
@@ -156,53 +225,68 @@ void initializeProgram() {
 
     printf("Input:\n");
 
-    while (scanf("%s", command) != EOF) {
-        if (strcmp(command, "createCache") == 0) {
+    while (scanf("%s", command) != EOF)
+    {
+        if (myStrcmp(command, "createCache") == 0)
+        {
             scanf("%d", &capacity);
-            if (cache != NULL) freeCache(cache);
+            if (cache != NULL)
+                freeCache(cache);
             cache = createCache(capacity);
         }
-        else if (strcmp(command, "put") == 0) {
-            if (cache == NULL) continue;
+        else if (myStrcmp(command, "put") == 0)
+        {
+            if (cache == NULL)
+                continue;
 
             scanf("%d", &key);
             getchar();
             scanf("%63[^\n]", value);
 
-            if (key < 0) {
+            if (key < 0)
+            {
                 printf("Invalid key\n");
                 continue;
             }
 
             put(cache, key, value);
         }
-        else if (strcmp(command, "get") == 0) {
-            if (cache == NULL) continue;
+        else if (myStrcmp(command, "get") == 0)
+        {
+            if (cache == NULL)
+                continue;
 
             scanf("%d", &key);
 
-            if (key < 0) {
+            if (key < 0)
+            {
                 printf("NULL\n");
                 continue;
             }
 
             char *result = get(cache, key);
 
-            if (result != NULL) printf("%s\n", result);
-            else printf("NULL\n");
+            if (result != NULL)
+                printf("%s\n", result);
+            else
+                printf("NULL\n");
         }
-        else if (strcmp(command, "exit") == 0) {
+        else if (myStrcmp(command, "exit") == 0)
+        {
             break;
         }
-        else {
+        else
+        {
             printf("Please enter a valid command\n");
         }
     }
 
-    if (cache != NULL) freeCache(cache);
+    if (cache != NULL)
+        freeCache(cache);
 }
 
-int main() {
+int main()
+{
     initializeProgram();
     return 0;
 }

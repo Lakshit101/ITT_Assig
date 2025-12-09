@@ -288,7 +288,7 @@ void printResults() {
         }
     }
 
-    printf("\nFINAL RESULTS (Sorted by PID):\n");
+    printf("\nFINAL RESULTS  :\n");
     printf("PID\tName\tCPU\tIO\tTurnaround\tWaiting\n");
 
     for (int i = 0; i < finishCount; i++) {
